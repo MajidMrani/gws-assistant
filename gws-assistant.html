@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WorkspaceAI — Votre assistant Google Workspace</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f11;
+    --bg2: #17171a;
+    --bg3: #1e1e23;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8e8ec;
+    --text2: #8b8b96;
+    --text3: #55555f;
+    --accent: #7c6cfc;
+    --accent2: #5b4de0;
+    --accent-glow: rgba(124,108,252,0.15);
+    --green: #2dca7a;
+    --green-bg: rgba(45,202,122,0.1);
+    --amber: #f5a623;
+    --amber-bg: rgba(245,166,35,0.1);
+    --red: #fc6c6c;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* ── Sidebar ── */
+  #sidebar {
+    width: 260px;
+    min-width: 260px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+  }
+
+  #logo {
+    padding: 22px 20px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  #logo-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--accent);
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  #logo-icon svg { width: 17px; height: 17px; }
+
+  #logo-text {
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: -0.3px;
+  }
+
+  #logo-sub {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 1px;
+  }
+
+  #api-section {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  #api-label {
+    font-size: 11px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
+  }
+
+  #api-input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text2);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  #api-input:focus { border-color: var(--accent); color: var(--text); }
+  #api-input::placeholder { color: var(--text3); }
+
+  #api-save {
+    width: 100%;
+    margin-top: 8px;
+    background: var(--accent);
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 8px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+
+  #api-save:hover { background: var(--accent2); }
+  #api-save:active { transform: scale(0.98); }
+
+  #api-status {
+    margin-top: 8px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text3);
+    flex-shrink: 0;
+  }
+  .dot.on { background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+  #shortcuts-section {
+    padding: 16px;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  #shortcuts-label {
+    font-size: 11px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 10px;
+  }
+
+  .shortcut-btn {
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 9px 11px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text2);
+    cursor: pointer;
+    margin-bottom: 6px;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1.3;
+  }
+
+  .shortcut-btn:hover {
+    background: var(--bg3);
+    border-color: var(--border2);
+    color: var(--text);
+  }
+
+  .sc-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 12px;
+  }
+
+  .sc-gmail { background: rgba(252,108,108,0.15); }
+  .sc-cal   { background: rgba(245,166,35,0.15); }
+  .sc-drive { background: rgba(45,202,122,0.15); }
+
+  #clear-btn {
+    margin: 12px 16px 16px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px;
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text3);
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  #clear-btn:hover { color: var(--text2); border-color: var(--border2); }
+
+  /* ── Main chat area ── */
+  #main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  #topbar {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg);
+  }
+
+  #topbar-title {
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  #topbar-sub {
+    font-size: 12px;
+    color: var(--text3);
+    margin-top: 1px;
+  }
+
+  #model-badge {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text3);
+  }
+
+  /* ── Messages ── */
+  #messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    scroll-behavior: smooth;
+  }
+
+  #messages::-webkit-scrollbar { width: 4px; }
+  #messages::-webkit-scrollbar-track { background: transparent; }
+  #messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+  .msg-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    animation: fadeUp 0.25s ease;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg-row.user { flex-direction: row-reverse; }
+
+  .msg-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .msg-row.assistant .msg-avatar {
+    background: var(--accent);
+    color: white;
+  }
+
+  .msg-row.user .msg-avatar {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text2);
+  }
+
+  .msg-bubble {
+    max-width: 72%;
+    padding: 12px 16px;
+    font-size: 14px;
+    line-height: 1.65;
+    border-radius: 4px 14px 14px 14px;
+  }
+
+  .msg-row.user .msg-bubble {
+    background: var(--accent);
+    color: white;
+    border-radius: 14px 4px 14px 14px;
+  }
+
+  .msg-row.assistant .msg-bubble {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  .action-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--green-bg);
+    border: 1px solid rgba(45,202,122,0.25);
+    color: var(--green);
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    margin-top: 8px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .tool-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--amber-bg);
+    border: 1px solid rgba(245,166,35,0.25);
+    color: var(--amber);
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    margin-top: 8px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* Typing indicator */
+  #typing {
+    display: none;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  #typing .msg-avatar {
+    background: var(--accent);
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  #typing-bubble {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 14px 16px;
+    border-radius: 4px 14px 14px 14px;
+    display: flex;
+    gap: 5px;
+    align-items: center;
+  }
+
+  .t-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text3);
+    animation: pulse 1.2s infinite;
+  }
+  .t-dot:nth-child(2) { animation-delay: 0.2s; }
+  .t-dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes pulse {
+    0%,80%,100% { opacity: 0.3; transform: scale(0.85); }
+    40% { opacity: 1; transform: scale(1); }
+  }
+
+  /* ── Input bar ── */
+  #inputbar {
+    padding: 16px 24px 20px;
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  #input-wrap {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 14px;
+    padding: 10px 10px 10px 16px;
+    transition: border-color 0.2s;
+  }
+
+  #input-wrap:focus-within { border-color: var(--accent); }
+
+  #userinput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    resize: none;
+    max-height: 120px;
+    line-height: 1.5;
+  }
+
+  #userinput::placeholder { color: var(--text3); }
+
+  #sendbtn {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: var(--accent);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s, transform 0.1s, opacity 0.15s;
+  }
+
+  #sendbtn:hover { background: var(--accent2); }
+  #sendbtn:active { transform: scale(0.94); }
+  #sendbtn:disabled { opacity: 0.35; cursor: not-allowed; }
+  #sendbtn svg { width: 15px; height: 15px; }
+
+  #hint {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 8px;
+    text-align: center;
+  }
+
+  /* Empty state */
+  #empty-state {
+    margin: auto;
+    text-align: center;
+    padding: 40px 20px;
+  }
+
+  #empty-icon {
+    width: 52px;
+    height: 52px;
+    background: var(--accent-glow);
+    border: 1px solid rgba(124,108,252,0.3);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+  }
+
+  #empty-title {
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  #empty-sub {
+    font-size: 13px;
+    color: var(--text3);
+    max-width: 300px;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div id="logo">
+    <div id="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+      </svg>
+    </div>
+    <div>
+      <div id="logo-text">WorkspaceAI</div>
+      <div id="logo-sub">Assistant GWS</div>
+    </div>
+  </div>
+
+  <div id="api-section">
+    <div id="api-label">Clé API Anthropic</div>
+    <input id="api-input" type="password" placeholder="sk-ant-api03-..." />
+    <button id="api-save" onclick="saveKey()">Activer l'assistant</button>
+    <div id="api-status">
+      <div class="dot" id="status-dot"></div>
+      <span id="status-text" style="font-size:12px;color:var(--text3)">Clé non configurée</span>
+    </div>
+  </div>
+
+  <div id="shortcuts-section">
+    <div id="shortcuts-label">Actions rapides</div>
+
+    <button class="shortcut-btn" onclick="inject('Résume mes 5 derniers emails non lus')">
+      <div class="sc-icon sc-gmail">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fc6c6c" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+      Emails non lus
+    </button>
+
+    <button class="shortcut-btn" onclick="inject('Quels sont mes rendez-vous cette semaine ?')">
+      <div class="sc-icon sc-cal">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f5a623" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </div>
+      Agenda semaine
+    </button>
+
+    <button class="shortcut-btn" onclick="inject('Crée un brouillon email pour reporter notre réunion de demain à jeudi même heure')">
+      <div class="sc-icon sc-gmail">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fc6c6c" stroke-width="2.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      </div>
+      Reporter une réunion
+    </button>
+
+    <button class="shortcut-btn" onclick="inject('Planifie un call de 30 min avec pierre@example.com vendredi à 15h, intitulé Revue Q1')">
+      <div class="sc-icon sc-cal">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f5a623" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      Planifier un call
+    </button>
+
+    <button class="shortcut-btn" onclick="inject('Quels fichiers Drive ai-je modifiés cette semaine ?')">
+      <div class="sc-icon sc-drive">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2dca7a" stroke-width="2.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      Fichiers récents Drive
+    </button>
+
+    <button class="shortcut-btn" onclick="inject('Crée un document Google Docs intitulé Compte-rendu réunion avec un template de base')">
+      <div class="sc-icon sc-drive">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2dca7a" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+      </div>
+      Créer un document
+    </button>
+  </div>
+
+  <button id="clear-btn" onclick="clearChat()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+    Effacer la conversation
+  </button>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="topbar">
+    <div>
+      <div id="topbar-title">Assistant Google Workspace</div>
+      <div id="topbar-sub">Gérez Gmail, Calendar et Drive en langage naturel</div>
+    </div>
+    <div id="model-badge">claude-sonnet-4</div>
+  </div>
+
+  <div id="messages">
+    <div id="empty-state">
+      <div id="empty-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7c6cfc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+        </svg>
+      </div>
+      <div id="empty-title">Bonjour, je suis votre assistant GWS</div>
+      <div id="empty-sub">Dites-moi ce que vous voulez faire avec Gmail, Calendar ou Drive. Utilisez les raccourcis à gauche ou tapez librement.</div>
+    </div>
+  </div>
+
+  <div id="typing">
+    <div class="msg-avatar">AI</div>
+    <div id="typing-bubble">
+      <div class="t-dot"></div>
+      <div class="t-dot"></div>
+      <div class="t-dot"></div>
+    </div>
+  </div>
+
+  <div id="inputbar">
+    <div id="input-wrap">
+      <textarea id="userinput" rows="1"
+        placeholder="Ex : Envoie un email à sophie@company.com pour confirmer notre rendez-vous lundi 10h…"
+        oninput="autoResize(this)"
+        onkeydown="handleKey(event)"></textarea>
+      <button id="sendbtn" onclick="send()" disabled>
+        <svg viewBox="0 0 24 24" fill="white" stroke="none">
+          <path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/>
+        </svg>
+      </button>
+    </div>
+    <div id="hint">Entrée pour envoyer · Maj+Entrée pour saut de ligne</div>
+  </div>
+</div>
+
+<script>
+const SYSTEM = `Tu es WorkspaceAI, un assistant expert Google Workspace pour entrepreneurs et équipes.
+
+Tu peux gérer :
+- Gmail : lire, rédiger, envoyer, organiser des emails
+- Google Calendar : consulter, créer, modifier, annuler des événements
+- Google Drive : organiser, chercher, partager des fichiers
+- Google Docs / Sheets / Slides : créer et modifier des documents
+- Google Meet : planifier des visioconférences
+
+Comportement :
+- Réponds toujours en français, de façon concise et professionnelle
+- Quand tu exécutes une action, présente un résumé structuré de ce que tu as fait
+- Si une info manque pour compléter une action, pose UNE seule question précise
+- La date d'aujourd'hui est : ${new Date().toLocaleDateString('fr-FR', { weekday:'long', year:'numeric', month:'long', day:'numeric' })}
+- Note : Cette démo n'est pas encore connectée aux vraies APIs Google. Simule les actions de façon réaliste et indique [Simulation] dans ta réponse. Présente des exemples concrets comme si tu avais accès aux vraies données.`;
+
+let history = [];
+let apiKey = '';
+
+function saveKey() {
+  const v = document.getElementById('api-input').value.trim();
+  if (!v || !v.startsWith('sk-')) {
+    document.getElementById('status-text').textContent = 'Clé invalide (doit commencer par sk-)';
+    document.getElementById('status-text').style.color = 'var(--red)';
+    return;
+  }
+  apiKey = v;
+  document.getElementById('status-dot').className = 'dot on';
+  document.getElementById('status-text').textContent = 'Connecté';
+  document.getElementById('status-text').style.color = 'var(--green)';
+  document.getElementById('api-input').value = '●●●●●●●●●●●●●';
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  document.getElementById('sendbtn').disabled = !el.value.trim();
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+}
+
+function inject(text) {
+  const el = document.getElementById('userinput');
+  el.value = text;
+  autoResize(el);
+  el.focus();
+}
+
+function clearChat() {
+  history = [];
+  const msgs = document.getElementById('messages');
+  msgs.innerHTML = `
+    <div id="empty-state" style="margin:auto;text-align:center;padding:40px 20px">
+      <div id="empty-icon" style="width:52px;height:52px;background:var(--accent-glow);border:1px solid rgba(124,108,252,0.3);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7c6cfc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      </div>
+      <div style="font-size:18px;font-weight:500;margin-bottom:8px">Conversation effacée</div>
+      <div style="font-size:13px;color:var(--text3)">Prêt pour une nouvelle conversation.</div>
+    </div>`;
+}
+
+function appendMsg(role, html, chips) {
+  const empty = document.getElementById('empty-state');
+  if (empty) empty.remove();
+
+  const msgs = document.getElementById('messages');
+  const initials = role === 'user' ? 'Moi' : 'AI';
+
+  let chipsHTML = '';
+  if (chips) {
+    chipsHTML = chips.map(c =>
+      `<div class="${c.type}-chip">${c.label}</div>`
+    ).join('');
+  }
+
+  const div = document.createElement('div');
+  div.className = `msg-row ${role}`;
+  div.innerHTML = `
+    <div class="msg-avatar">${initials}</div>
+    <div class="msg-bubble">${html}${chipsHTML ? '<div style="margin-top:4px">' + chipsHTML + '</div>' : ''}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showTyping(show) {
+  const t = document.getElementById('typing');
+  t.style.display = show ? 'flex' : 'none';
+  if (show) document.getElementById('messages').scrollTop = 99999;
+}
+
+async function send() {
+  const input = document.getElementById('userinput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  if (!apiKey) {
+    appendMsg('assistant',
+      'Veuillez d\'abord entrer votre clé API Anthropic dans le panneau de gauche et cliquer sur <strong>Activer l\'assistant</strong>.',
+      [{type:'tool', label:'Clé API requise'}]
+    );
+    return;
+  }
+
+  appendMsg('user', text.replace(/\n/g, '<br>'));
+  history.push({ role: 'user', content: text });
+  input.value = '';
+  input.style.height = 'auto';
+  document.getElementById('sendbtn').disabled = true;
+  showTyping(true);
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-calls': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1024,
+        system: SYSTEM,
+        messages: history
+      })
+    });
+
+    const data = await res.json();
+    showTyping(false);
+
+    if (!res.ok) {
+      const errMsg = data.error?.message || 'Erreur API';
+      appendMsg('assistant', `Erreur : ${errMsg}`, [{type:'tool', label:'Erreur API'}]);
+      return;
+    }
+
+    const reply = data.content?.filter(b => b.type === 'text').map(b => b.text).join('') || '';
+    history.push({ role: 'assistant', content: reply });
+
+    const isAction = /simulat|créé|envoyé|planifié|modifié|supprimé|trouvé|rédigé/i.test(reply);
+    const chips = isAction ? [{type:'action', label:'✓ Action exécutée'}] : null;
+
+    appendMsg('assistant', reply.replace(/\n/g, '<br>'), chips);
+
+  } catch (err) {
+    showTyping(false);
+    appendMsg('assistant',
+      'Impossible de joindre l\'API Anthropic. Vérifiez votre connexion internet et votre clé API.',
+      [{type:'tool', label:'Erreur réseau'}]
+    );
+  }
+}
+
+document.getElementById('userinput').addEventListener('input', function() {
+  document.getElementById('sendbtn').disabled = !this.value.trim();
+});
+</script>
+</body>
+</html>
